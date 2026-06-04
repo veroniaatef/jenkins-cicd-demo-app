@@ -9,7 +9,7 @@ pipeline {
         IMAGE_NAME     = 'my-cicd-app'
         IMAGE_TAG      = "v${BUILD_NUMBER}"
         CONTAINER_NAME = 'my-cicd-container'
-        PORT           = '3000'
+        PORT           = '8090'
     }
 
     stages {
@@ -74,7 +74,7 @@ pipeline {
 
     post {
         success {
-            echo '🎉 Pipeline SUCCEEDED! App is live.'
+            echo '🎉 Pipeline SUCCEEDED! App is live at http://localhost:8090'
         }
         failure {
             echo '💥 Pipeline FAILED. Check logs above.'
