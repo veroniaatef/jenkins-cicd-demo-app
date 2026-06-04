@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        nodejs 'NodeJS18'
+    }
+
     environment {
         IMAGE_NAME     = 'my-cicd-app'
         IMAGE_TAG      = "v${BUILD_NUMBER}"
