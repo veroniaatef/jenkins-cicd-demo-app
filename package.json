@@ -4,7 +4,7 @@
   "description": "CI/CD Demo App",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js",
+    "start": "node server.js",
     "test": "npx jest --forceExit"
   },
   "dependencies": {
