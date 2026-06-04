@@ -1,38 +1,83 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:18-alpine'
-        }
+    agent any
+
+    environment {
+        IMAGE_NAME     = 'my-cicd-app'
+        IMAGE_TAG      = "v${BUILD_NUMBER}"
+        CONTAINER_NAME = 'my-cicd-container'
+        PORT           = '3000'
     }
 
     stages {
 
-        stage('Checkout') {
+        stage('📥 Checkout') {
             steps {
+                echo '=== Checking out source code ==='
                 checkout scm
             }
         }
 
-        stage('Install Dependencies') {
+        stage('📦 Install Dependencies') {
             steps {
+                echo '=== Installing npm packages ==='
                 sh 'npm install'
             }
         }
 
-        stage('Test') {
+        stage('🧪 Test') {
             steps {
+                echo '=== Running Tests ==='
                 sh 'npm test'
+            }
+            post {
+                failure {
+                    echo '❌ Tests failed! Pipeline stopped.'
+                }
+            }
+        }
+
+        stage('🐳 Build Docker Image') {
+            steps {
+                echo "=== Building Docker image: ${IMAGE_NAME}:${IMAGE_TAG} ==="
+                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest"
+            }
+        }
+
+        stage('🚀 Deploy Container') {
+            steps {
+                echo '=== Deploying container ==='
+                sh """
+                    docker stop ${CONTAINER_NAME} || true
+                    docker rm   ${CONTAINER_NAME} || true
+                    docker run -d \
+                        --name ${CONTAINER_NAME} \
+                        -p ${PORT}:3000 \
+                        --restart unless-stopped \
+                        ${IMAGE_NAME}:latest
+                """
+                echo "✅ App deployed at http://localhost:${PORT}"
+            }
+        }
+
+        stage('🔍 Verify Deployment') {
+            steps {
+                echo '=== Verifying container is running ==='
+                sh "docker ps | grep ${CONTAINER_NAME}"
             }
         }
     }
 
     post {
         success {
-            echo 'Pipeline completed successfully'
+            echo '🎉 Pipeline SUCCEEDED! App is live.'
         }
-
         failure {
-            echo 'Pipeline failed'
+            echo '💥 Pipeline FAILED. Check logs above.'
+        }
+        always {
+            echo '🧹 Cleaning up old Docker images...'
+            sh "docker image prune -f || true"
         }
     }
 }
