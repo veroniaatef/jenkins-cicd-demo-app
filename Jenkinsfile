@@ -17,31 +17,31 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                bat 'npm install'
+                sh 'npm install'
             }
         }
 
         stage('Test') {
             steps {
-                bat 'npm test'
+                sh 'npm test'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                bat 'docker build -t %IMAGE_NAME% .'
+                sh 'docker build -t %IMAGE_NAME% .'
             }
         }
-
         stage('Deploy') {
             steps {
-                bat '''
-                docker stop %CONTAINER_NAME% || exit 0
-                docker rm %CONTAINER_NAME% || exit 0
-                docker run -d -p %APP_PORT%:3000 --name %CONTAINER_NAME% %IMAGE_NAME%
+                sh '''
+                 docker stop $CONTAINER_NAME || true
+                 docker rm $CONTAINER_NAME || true
+                docker run -d -p $APP_PORT:3000 --name $CONTAINER_NAME $IMAGE_NAME
                 '''
             }
         }
+
     }
 
     post {
